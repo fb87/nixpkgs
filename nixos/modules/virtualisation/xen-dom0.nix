@@ -147,14 +147,6 @@ in
   ###### implementation
 
   config = mkIf cfg.enable {
-    assertions = [ {
-      assertion = pkgs.stdenv.isx86_64;
-      message = "Xen currently not supported on ${pkgs.stdenv.hostPlatform.system}";
-    } {
-      assertion = config.boot.loader.grub.enable && (config.boot.loader.grub.efiSupport == false);
-      message = "Xen currently does not support EFI boot";
-    } ];
-
     virtualisation.xen.package = mkDefault pkgs.xen;
     virtualisation.xen.package-qemu = mkDefault pkgs.xen;
     virtualisation.xen.stored = mkDefault "${cfg.package}/bin/oxenstored";
