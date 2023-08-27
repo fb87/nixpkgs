@@ -4,10 +4,10 @@
 , SDL2
 , cmake
 , copyDesktopItems
+, cubeb
 , curl
 , extra-cmake-modules
 , libXrandr
-, libpulseaudio
 , makeDesktopItem
 , mesa # for libgbm
 , ninja
@@ -15,6 +15,7 @@
 , qtbase
 , qtsvg
 , qttools
+, qtwayland
 , vulkan-loader
 , wayland
 , wrapQtAppsHook
@@ -23,36 +24,41 @@
 
 stdenv.mkDerivation {
   pname = "duckstation";
-  version = "unstable-2022-11-18";
+  version = "unstable-2023-04-14";
 
   src = fetchFromGitHub {
     owner = "stenzek";
     repo = "duckstation";
-    rev = "8d7aea5e19859ed483699cc4a5dbd47165c7be8b";
-    sha256 = "sha256-92Wn1ZEEZszmVK/KrJqjDuQf/lyD8/VScfTI/St5dY4=";
+    rev = "5fee6f5abee7f3aad65da5523e57896e10e2a53a";
+    sha256 = "sha256-sRs/b4GVXhF3zrOef8DSBKJJGYECUER/nNWZAqv7suA=";
   };
 
   nativeBuildInputs = [
     cmake
-    extra-cmake-modules
     copyDesktopItems
     ninja
     pkg-config
     qttools
     wrapQtAppsHook
+  ]
+  ++ lib.optionals enableWayland [
+    extra-cmake-modules
   ];
 
   buildInputs = [
     SDL2
     curl
-    libpulseaudio
     libXrandr
     mesa
     qtbase
     qtsvg
     vulkan-loader
   ]
-  ++ lib.optionals enableWayland [ wayland ];
+  ++ lib.optionals enableWayland [
+    qtwayland
+    wayland
+  ]
+  ++ cubeb.passthru.backendLibs;
 
   cmakeFlags = [
     "-DUSE_DRMKMS=ON"
@@ -93,16 +99,15 @@ stdenv.mkDerivation {
     runHook postCheck
   '';
 
-  # Libpulseaudio fixes https://github.com/NixOS/nixpkgs/issues/171173
   qtWrapperArgs = [
-    "--set QT_QPA_PLATFORM xcb"
-    "--prefix LD_LIBRARY_PATH : ${lib.makeLibraryPath [ libpulseaudio vulkan-loader ]}"
+    "--prefix LD_LIBRARY_PATH : ${lib.makeLibraryPath ([ vulkan-loader ] ++ cubeb.passthru.backendLibs)}"
   ];
 
   meta = with lib; {
     homepage = "https://github.com/stenzek/duckstation";
     description = "Fast PlayStation 1 emulator for x86-64/AArch32/AArch64";
     license = licenses.gpl3Only;
+    mainProgram = "duckstation-qt";
     maintainers = with maintainers; [ guibou AndersonTorres ];
     platforms = platforms.linux;
   };

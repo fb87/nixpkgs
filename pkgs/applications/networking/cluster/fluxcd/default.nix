@@ -1,9 +1,9 @@
 { lib, buildGoModule, fetchFromGitHub, fetchzip, installShellFiles, stdenv }:
 
 let
-  version = "0.36.0";
-  sha256 = "1rjsdisj2cib8pyfc1lx5jgx0dksh0zhiqccgvqvfja24azvhc4n";
-  manifestsSha256 = "0kzbzn43i35kyl7h9kb4f21sbrz90jx9pj35002j2i1j20b2xzh8";
+  version = "2.1.0";
+  sha256 = "08g9awlgij8privpmzmrg63aygcjqmycr981ak0lkbx5chynlnmn";
+  manifestsSha256 = "06iqmc5rg9l7zwcyg66fvy6h1g4bg1mr496n17piapjiqiv3j3q4";
 
   manifests = fetchzip {
     url =
@@ -23,13 +23,14 @@ in buildGoModule rec {
     inherit sha256;
   };
 
-  vendorSha256 = "sha256-2N91+anR0nD9E563MgSQPwslR9J/uvSHLs6kD4Yc3So=";
+  vendorSha256 = "sha256-RVHDiJS1MhskVorS/SNZlXWP/oc8OXjUjApeanBkIWQ=";
 
   postUnpack = ''
     cp -r ${manifests} source/cmd/flux/manifests
-  '';
 
-  patches = [ ./patches/disable-tests-ssh_key.patch ];
+    # disable tests that require network access
+    rm source/cmd/flux/create_secret_git_test.go
+  '';
 
   ldflags = [ "-s" "-w" "-X main.VERSION=${version}" ];
 

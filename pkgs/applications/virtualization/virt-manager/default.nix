@@ -2,6 +2,7 @@
 , vte, avahi, dconf, gobject-introspection, libvirt-glib, system-libvirt
 , gsettings-desktop-schemas, libosinfo, gnome, gtksourceview4, docutils, cpio
 , e2fsprogs, findutils, gzip, cdrtools, xorriso, fetchpatch
+, desktopToDarwinBundle, stdenv
 , spiceSupport ? true, spice-gtk ? null
 }:
 
@@ -26,8 +27,8 @@ python3.pkgs.buildPythonApplication rec {
     wrapGAppsHook
     libvirt-glib vte dconf gtk-vnc gnome.adwaita-icon-theme avahi
     gsettings-desktop-schemas libosinfo gtksourceview4
-    gobject-introspection # Temporary fix, see https://github.com/NixOS/nixpkgs/issues/56943
-  ] ++ lib.optional spiceSupport spice-gtk;
+  ] ++ lib.optional spiceSupport spice-gtk
+    ++ lib.optional stdenv.isDarwin desktopToDarwinBundle;
 
   propagatedBuildInputs = with python3.pkgs; [
     pygobject3 libvirt libxml2 requests cdrtools
@@ -60,7 +61,7 @@ python3.pkgs.buildPythonApplication rec {
       --replace "'--owner=root:root'" "'--owner=0:0'"
   '';
 
-  checkInputs = with python3.pkgs; [
+  nativeCheckInputs = with python3.pkgs; [
     pytestCheckHook
     cpio
     cdrtools
@@ -92,6 +93,7 @@ python3.pkgs.buildPythonApplication rec {
     '';
     license = licenses.gpl2;
     platforms = platforms.unix;
+    mainProgram = "virt-manager";
     maintainers = with maintainers; [ qknight offline fpletz globin ];
   };
 }

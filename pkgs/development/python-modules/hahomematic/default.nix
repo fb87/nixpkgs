@@ -2,6 +2,7 @@
 , aiohttp
 , buildPythonPackage
 , fetchFromGitHub
+, orjson
 , pydevccu
 , pytest-aiohttp
 , pytestCheckHook
@@ -11,40 +12,40 @@
 , voluptuous
 , websocket-client
 , xmltodict
+, wheel
 }:
 
 buildPythonPackage rec {
   pname = "hahomematic";
-  version = "2022.11.2";
+  version = "2023.8.11";
   format = "pyproject";
 
-  disabled = pythonOlder "3.9";
+  disabled = pythonOlder "3.11";
 
   src = fetchFromGitHub {
     owner = "danielperna84";
     repo = pname;
     rev = "refs/tags/${version}";
-    sha256 = "sha256-m28UDaBk2EFwulkjvuT6zpLEeVL/oofHUVSop+AKYvc=";
+    hash = "sha256-EDpOCZlWIb1WChO4/k37WDkA4LT4Wy8tcMpThMgCQoU=";
   };
 
   nativeBuildInputs = [
     setuptools
+    wheel
   ];
 
   propagatedBuildInputs = [
     aiohttp
+    orjson
     python-slugify
     voluptuous
   ];
 
-  checkInputs = [
+  nativeCheckInputs = [
     pydevccu
     pytest-aiohttp
     pytestCheckHook
   ];
-
-  # Starting with 0.30 the tests are broken, check with the next major release
-  doCheck = false;
 
   pythonImportsCheck = [
     "hahomematic"
@@ -53,6 +54,7 @@ buildPythonPackage rec {
   meta = with lib; {
     description = "Python module to interact with HomeMatic devices";
     homepage = "https://github.com/danielperna84/hahomematic";
+    changelog = "https://github.com/danielperna84/hahomematic/releases/tag/${version}";
     license = with licenses; [ mit ];
     maintainers = with maintainers; [ fab ];
   };

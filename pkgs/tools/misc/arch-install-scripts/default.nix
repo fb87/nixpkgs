@@ -7,7 +7,6 @@
 , gawk
 , gnugrep
 , gnum4
-, makeWrapper
 , pacman
 , util-linux
 , chrootPath ? [
@@ -68,8 +67,9 @@ resholve.mkDerivation rec {
 
       # TODO: no good way to resolve mount/umount in Nix builds for now
       # see https://github.com/abathur/resholve/issues/29
-      fake = {
-        external = [ "mount" "umount" ];
+      fix = {
+        mount = true;
+        umount = true;
       };
 
       keep = [ "$setup" "$pid_unshare" "$mount_unshare" "${pacman}/bin/pacman" ];

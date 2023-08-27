@@ -31,6 +31,7 @@ let
                   maintainers = with lib.maintainers; [ adisbladis aminechikhaoui eelco rob domenkozar ];
                   platforms = lib.platforms.unix;
                   license = lib.licenses.lgpl3;
+                  mainProgram = "nixops";
                 };
 
               }
@@ -69,11 +70,29 @@ let
           };
         })
 
+        (self: super: {
+          cryptography = super.cryptography.overridePythonAttrs (old: {
+            meta = old.meta // {
+              knownVulnerabilities = old.meta.knownVulnerabilities or [ ]
+                ++ lib.optionals (lib.versionOlder old.version "39.0.1") [
+                  "CVE-2022-4304"
+                  "CVE-2023-0215"
+                  "CVE-2023-0216"
+                  "CVE-2023-0217"
+                  "CVE-2023-0401"
+                  "CVE-2022-4203"
+                  "CVE-2022-4450"
+                  "CVE-2023-23931"
+                ];
+            };
+          });
+        })
+
       ];
     }
   ).python;
 
-  pkg = interpreter.pkgs.nixops.withPlugins(ps: [
+  pkg = (interpreter.pkgs.nixops.withPlugins(ps: [
     ps.nixops-aws
     ps.nixops-digitalocean
     ps.nixops-encrypted-links
@@ -82,11 +101,11 @@ let
     ps.nixops-hetzner
     ps.nixopsvbox
     ps.nixops-virtd
-  ]) // rec {
-    # Workaround for https://github.com/NixOS/nixpkgs/issues/119407
-    # TODO after #1199407: Use .overrideAttrs(pkg: old: { passthru.tests = .....; })
-    tests = nixosTests.nixops.unstable.override { nixopsPkg = pkg; };
-    # Not strictly necessary, but probably expected somewhere; part of the workaround:
-    passthru.tests = tests;
-  };
+    ps.nixops-hetznercloud
+  ])).overrideAttrs (finalAttrs: prevAttrs: {
+    passthru = prevAttrs.passthru or {} // {
+      tests = prevAttrs.passthru.tests or {} //
+        nixosTests.nixops.unstable.passthru.override { nixopsPkg = pkg; };
+    };
+  });
 in pkg

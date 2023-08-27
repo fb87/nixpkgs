@@ -17,14 +17,14 @@
 
 buildPythonPackage rec {
   pname = "pyproj";
-  version = "3.4.0";
-  disabled = pythonOlder "3.7";
+  version = "3.6.0";
+  disabled = pythonOlder "3.9";
 
   src = fetchFromGitHub {
     owner = "pyproj4";
     repo = "pyproj";
     rev = "refs/tags/${version}";
-    hash = "sha256-EXPeDNGr6eAAsLXCkV9mmkNDO1KScjZYgmBPzt+A1OU=";
+    hash = "sha256-XMJg1azsvMtVnKuIulrrZ1Of3CFk2/EgQjkN1g0FpmQ=";
   };
 
   # force pyproj to use ${proj}
@@ -43,7 +43,7 @@ buildPythonPackage rec {
      certifi
   ];
 
-  checkInputs = [
+  nativeCheckInputs = [
     pytestCheckHook
     mock
     numpy
@@ -82,6 +82,22 @@ buildPythonPackage rec {
     "test_sync_download__directory"
     "test_sync_download__system_directory"
     "test_transformer_group__download_grids"
+  ];
+
+  pythonImportsCheck = [
+    "pyproj"
+    "pyproj.crs"
+    "pyproj.transformer"
+    "pyproj.geod"
+    "pyproj.proj"
+    "pyproj.database"
+    "pyproj.list"
+    "pyproj.datadir"
+    "pyproj.network"
+    "pyproj.sync"
+    "pyproj.enums"
+    "pyproj.aoi"
+    "pyproj.exceptions"
   ];
 
   meta = {

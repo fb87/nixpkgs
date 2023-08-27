@@ -1,10 +1,7 @@
 { lib
-, stdenv
 , fetchFromGitHub
 , buildGoModule
-, runCommand
 , nix-update-script
-, fetchurl
 , testers
 , python3
 , curl
@@ -28,7 +25,7 @@ buildGoModule rec {
 
   ldflags = [ "-X" "main.Version=${version}" ];
 
-  checkInputs = [ python3 curl jq p7zip ];
+  nativeCheckInputs = [ python3 curl jq p7zip ];
 
   preCheck = ''
     substituteInPlace scripts/test.py \
@@ -46,12 +43,13 @@ buildGoModule rec {
   '';
 
   passthru = {
-    updateScript = nix-update-script { attrPath = pname; };
+    updateScript = nix-update-script { };
 
     tests.version = testers.testVersion { package = dsq; };
   };
 
   meta = with lib; {
+    mainProgram = "dsq";
     description = "Commandline tool for running SQL queries against JSON, CSV, Excel, Parquet, and more";
     homepage = "https://github.com/multiprocessio/dsq";
     license = licenses.asl20;

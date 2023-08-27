@@ -1,5 +1,6 @@
 { lib
 , async-timeout
+, bluetooth-adapters
 , btsocket
 , buildPythonPackage
 , fetchFromGitHub
@@ -7,11 +8,12 @@
 , pyric
 , pytestCheckHook
 , pythonOlder
+, usb-devices
 }:
 
 buildPythonPackage rec {
   pname = "bluetooth-auto-recovery";
-  version = "0.4.0";
+  version = "1.2.1";
   format = "pyproject";
 
   disabled = pythonOlder "3.9";
@@ -20,7 +22,7 @@ buildPythonPackage rec {
     owner = "Bluetooth-Devices";
     repo = pname;
     rev = "refs/tags/v${version}";
-    hash = "sha256-juGrrUqPgg1bJsMZP0iitp0NW/XrCxNq/+/fx5QNkQ4=";
+    hash = "sha256-5OOIehWb7nxKs1AF9/0yjZhbc3h4MWdgAVCa7irq5YE=";
   };
 
   nativeBuildInputs = [
@@ -29,11 +31,13 @@ buildPythonPackage rec {
 
   propagatedBuildInputs = [
     async-timeout
+    bluetooth-adapters
     btsocket
     pyric
+    usb-devices
   ];
 
-  checkInputs = [
+  nativeCheckInputs = [
     pytestCheckHook
   ];
 

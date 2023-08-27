@@ -7,28 +7,39 @@
 , docformatter
 , jinja2
 , toposort
+, typing-extensions
 , lxml
 , requests
 , pytestCheckHook
+, setuptools
+, wheel
 }:
 
 buildPythonPackage rec {
   pname = "xsdata";
-  version = "22.11";
+  version = "23.8";
+  format = "pyproject";
 
-  disabled = pythonOlder "3.7";
-
-  format = "setuptools";
+  disabled = pythonOlder "3.8";
 
   src = fetchPypi {
     inherit pname version;
-    hash = "sha256-3A2vyK6UdelWSzcN7pzPz6xKnU3X+rum7dKzl6OfWoc=";
+    hash = "sha256-VfA9TIgjbwRyZq/+VQug3RlHat/OagHz4K76x8gHjlY=";
   };
 
   postPatch = ''
-    substituteInPlace setup.cfg \
+    substituteInPlace pyproject.toml \
       --replace "--benchmark-skip" ""
   '';
+
+  nativeBuildInputs = [
+    setuptools
+    wheel
+  ];
+
+  propagatedBuildInputs = [
+    typing-extensions
+  ];
 
   passthru.optional-dependencies = {
     cli = [
@@ -46,7 +57,7 @@ buildPythonPackage rec {
     ];
   };
 
-  checkInputs = [
+  nativeCheckInputs = [
     pytestCheckHook
   ] ++ passthru.optional-dependencies.cli
     ++ passthru.optional-dependencies.lxml

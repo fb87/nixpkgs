@@ -16,20 +16,20 @@
 
 buildGoModule rec {
   pname = "evcc";
-  version = "0.107.1";
+  version = "0.118.11";
 
   src = fetchFromGitHub {
     owner = "evcc-io";
     repo = pname;
     rev = version;
-    hash = "sha256-Yu7ebZ6WkLpdvmg7H9A1Sveyu9SRuQ+78gFrCZrYhCU=";
+    hash = "sha256-gwFArZJX3DBUNaSpWD5n76VImWeDImR8b1s2czBrBaA=";
   };
 
-  vendorHash = "sha256-10W1BNHcdP77m7lJ/mc+jQeUigoUid3K0wI4bUm5y+s=";
+  vendorHash = "sha256-0NTOit1nhX/zxQjHwU7ZOY1GsoIu959/KICCEWyfIQ4=";
 
   npmDeps = fetchNpmDeps {
     inherit src;
-    hash = "sha256-+l5LuxJAjrTvOL5XEQ4OIktdupSpn6IqrNX5x4MRmNw=";
+    hash = "sha256-/zpyU7x3cdmKrS7YiMe2BVJm0AC0P+yspiG9C3dMVAk=";
   };
 
   nativeBuildInputs = [
@@ -53,6 +53,7 @@ buildGoModule rec {
 
   tags = [
     "release"
+    "test"
   ];
 
   ldflags = [
@@ -60,10 +61,6 @@ buildGoModule rec {
     "-X github.com/evcc-io/evcc/server.Commit=${src.rev}"
     "-s"
     "-w"
-  ];
-
-  npmInstallFlags = [
-    "--legacy-peer-deps"
   ];
 
   preBuild = ''
@@ -75,15 +72,14 @@ buildGoModule rec {
   preCheck = ''
     # requires network access
     rm meter/template_test.go
+    rm charger/template_test.go
   '';
 
   passthru = {
     tests = {
       inherit (nixosTests) evcc;
     };
-    updateScript = nix-update-script {
-      attrPath = pname;
-    };
+    updateScript = nix-update-script { };
   };
 
   meta = with lib; {

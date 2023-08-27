@@ -1,6 +1,7 @@
 { lib
 , stdenv
 , fetchFromGitHub
+, fetchpatch
 , cmake
 , swig
 , boost
@@ -25,13 +26,13 @@
 
 stdenv.mkDerivation rec {
   pname = "openturns";
-  version = "1.20";
+  version = "1.21";
 
   src = fetchFromGitHub {
     owner = "openturns";
     repo = "openturns";
     rev = "v${version}";
-    sha256 = "sha256-QeapH937yGnK6oD+rgIERePxz6ooxGpOx6x9LyFDt2A=";
+    sha256 = "sha256-zWCwuxJEiyhnllVCsfm3zNz2Xorvuj2Vl2fufS3qixY=";
   };
 
   nativeBuildInputs = [ cmake ] ++ lib.optional enablePython python3Packages.sphinx;
@@ -74,6 +75,7 @@ stdenv.mkDerivation rec {
     description = "Multivariate probabilistic modeling and uncertainty treatment library";
     license = with licenses; [ lgpl3 gpl3 ];
     homepage = "https://openturns.github.io/www/";
+    changelog = "https://github.com/openturns/openturns/raw/v${version}/ChangeLog";
     maintainers = with maintainers; [ gdinh ];
     platforms = platforms.unix;
   };

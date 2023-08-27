@@ -1,32 +1,63 @@
-{ stdenv, lib, rustPlatform, fetchFromGitHub, makeWrapper, cargo-watch, zig, Security }:
+{ lib
+, cacert
+, curl
+, rustPlatform
+, fetchFromGitHub
+, makeWrapper
+, pkg-config
+, openssl
+, stdenv
+, CoreServices
+, Security
+, zig
+}:
 
 rustPlatform.buildRustPackage rec {
   pname = "cargo-lambda";
-  version = "0.12.0";
+  version = "0.18.1";
 
   src = fetchFromGitHub {
     owner = pname;
     repo = pname;
     rev = "v${version}";
-    sha256 = "sha256-SgA2eKXZIPWbyJkopk8E9rTgkUWl6LWP2dw2fn3H8qc=";
+    sha256 = "sha256-un+GQflxhMHCMH5UEeUVsYx59ryn7MR4ApooeOuhccc=";
   };
 
-  cargoSha256 = "sha256-rTVc8zzbzLzP0LV8h7IWE1S+ZqDVfnO18iT0CrOrI9A=";
+  cargoLock = {
+    lockFile = ./Cargo.lock;
+    outputHashes = {
+      "cargo-test-macro-0.1.0" = "sha256-XvTKAbP/r1BthpEM84CYZ2yfJczxqzscGkN4JXLgvfA=";
+    };
+  };
 
-  buildInputs = lib.optionals stdenv.isDarwin [ Security ];
+  nativeCheckInputs = [cacert];
 
-  nativeBuildInputs = [ makeWrapper ];
+  nativeBuildInputs = [ makeWrapper pkg-config ];
 
-  postInstall = ''
-    wrapProgram $out/bin/cargo-lambda --prefix PATH : ${lib.makeBinPath [ cargo-watch zig ]}
-  '';
+  buildInputs = [ openssl ] ++ lib.optionals stdenv.isDarwin [ curl CoreServices Security ];
 
   checkFlags = [
-    # Disabled because it accesses the network.
-    "--skip test_download_example"
-    # Disabled because it makes assumptions about the file system.
-    "--skip test_target_dir_from_env"
+    # Disabled because they accesses the network.
+    "--skip=test_build_basic_extension"
+    "--skip=test_build_basic_function"
+    "--skip=test_build_http_function"
+    "--skip=test_build_logs_extension"
+    "--skip=test_build_telemetry_extension"
+    "--skip=test_download_example"
+    "--skip=test_init_subcommand"
+    "--skip=test_init_subcommand_without_override"
   ];
+
+  # remove date from version output to make reproducible
+  postPatch = ''
+    rm crates/cargo-lambda-cli/build.rs
+  '';
+
+  postInstall = ''
+    wrapProgram $out/bin/cargo-lambda --prefix PATH : ${lib.makeBinPath [ zig ]}
+  '';
+
+  CARGO_LAMBDA_BUILD_INFO = "(nixpkgs)";
 
   meta = with lib; {
     description = "A Cargo subcommand to help you work with AWS Lambda";

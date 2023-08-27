@@ -16,23 +16,23 @@
 
 buildPythonPackage rec {
   pname = "orjson";
-  version = "3.8.1";
+  version = "3.9.4";
+  format = "pyproject";
+
   disabled = pythonOlder "3.7";
 
   src = fetchFromGitHub {
     owner = "ijl";
     repo = pname;
-    rev = version;
-    hash = "sha256-3U27JuKMsMla3BKbbpO0uXesGHYaVQs8MwtQvumkksY=";
+    rev = "refs/tags/${version}";
+    hash = "sha256-WS4qynQmJIVdDf0sYK/HFVQ+F5nfoJwx/zzmaL6YTRc=";
   };
 
   cargoDeps = rustPlatform.fetchCargoTarball {
     inherit src;
     name = "${pname}-${version}";
-    hash = "sha256-QXguyDxQHW9Fd3Nhmi5JzSxZQuk3HGPhhh/RGuOTZNY";
+    hash = "sha256-hGUXPTiKvKygxQzxXAO/+bD34eLnpkhQ7r/g27E+d4I=";
   };
-
-  format = "pyproject";
 
   nativeBuildInputs = [
     cffi
@@ -41,9 +41,11 @@ buildPythonPackage rec {
     maturinBuildHook
   ]);
 
-  buildInputs = lib.optionals stdenv.isDarwin [ libiconv ];
+  buildInputs = lib.optionals stdenv.isDarwin [
+    libiconv
+  ];
 
-  checkInputs = [
+  nativeCheckInputs = [
     numpy
     psutil
     pytestCheckHook
@@ -52,17 +54,14 @@ buildPythonPackage rec {
     xxhash
   ];
 
-  disabledTests = lib.optionals (stdenv.is32bit) [
-    # integer overflow on 32bit
-    "test_numpy_array_d1_intp"
-    "test_numpy_array_d1_uintp"
+  pythonImportsCheck = [
+    "orjson"
   ];
-
-  pythonImportsCheck = [ pname ];
 
   meta = with lib; {
     description = "Fast, correct Python JSON library supporting dataclasses, datetimes, and numpy";
     homepage = "https://github.com/ijl/orjson";
+    changelog = "https://github.com/ijl/orjson/blob/${version}/CHANGELOG.md";
     license = with licenses; [ asl20 mit ];
     platforms = platforms.unix;
     maintainers = with maintainers; [ misuzu ];

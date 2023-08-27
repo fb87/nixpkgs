@@ -41,7 +41,7 @@ let
 in {
 
   imports = [
-    (mkAliasOptionModule [ "services" "compton" ] [ "services" "picom" ])
+    (mkAliasOptionModuleMD [ "services" "compton" ] [ "services" "picom" ])
     (mkRemovedOptionModule [ "services" "picom" "refreshRate" ] ''
       This option corresponds to `refresh-rate`, which has been unused
       since picom v6 and was subsequently removed by upstream.
@@ -60,6 +60,8 @@ in {
         Whether or not to enable Picom as the X.org composite manager.
       '';
     };
+
+    package = mkPackageOptionMD pkgs "picom" { };
 
     fade = mkOption {
       type = types.bool;
@@ -199,10 +201,10 @@ in {
     };
 
     backend = mkOption {
-      type = types.enum [ "glx" "xrender" "xr_glx_hybrid" ];
+      type = types.enum [ "egl" "glx" "xrender" "xr_glx_hybrid" ];
       default = "xrender";
       description = lib.mdDoc ''
-        Backend to use: `glx`, `xrender` or `xr_glx_hybrid`.
+        Backend to use: `egl`, `glx`, `xrender` or `xr_glx_hybrid`.
       '';
     };
 
@@ -301,13 +303,13 @@ in {
       };
 
       serviceConfig = {
-        ExecStart = "${pkgs.picom}/bin/picom --config ${configFile}";
+        ExecStart = "${getExe cfg.package} --config ${configFile}";
         RestartSec = 3;
         Restart = "always";
       };
     };
 
-    environment.systemPackages = [ pkgs.picom ];
+    environment.systemPackages = [ cfg.package ];
   };
 
   meta.maintainers = with lib.maintainers; [ rnhmjoj ];

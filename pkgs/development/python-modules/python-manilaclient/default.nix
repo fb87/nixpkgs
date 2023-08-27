@@ -18,17 +18,16 @@
 , python-keystoneclient
 , debtcollector
 , callPackage
-, pythonOlder
 }:
 
 buildPythonPackage rec {
   pname = "python-manilaclient";
-  version = "4.1.0";
+  version = "4.5.1";
   format = "setuptools";
 
   src = fetchPypi {
     inherit pname version;
-    hash = "sha256-yoyQyhyqRQZ8yyn3sv94JqkVZQMybwxLGFForZowr3o=";
+    hash = "sha256-jtcY0yPD6eBcTFNVgANY4brQkrAscADeY8hbfw6M/tI=";
   };
 
   nativeBuildInputs = [

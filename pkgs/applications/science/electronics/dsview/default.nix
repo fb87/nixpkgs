@@ -1,18 +1,18 @@
-{ lib, mkDerivation, fetchFromGitHub, pkg-config, cmake
-, libzip, boost, fftw, qtbase, libusb1
+{ stdenv, lib, fetchFromGitHub, pkg-config, cmake, wrapQtAppsHook
+, libzip, boost, fftw, qtbase, qtwayland, qtsvg, libusb1
 , python3, fetchpatch
 }:
 
-mkDerivation rec {
+stdenv.mkDerivation rec {
   pname = "dsview";
 
-  version = "1.2.1";
+  version = "1.3.0";
 
   src = fetchFromGitHub {
       owner = "DreamSourceLab";
       repo = "DSView";
       rev = "v${version}";
-      sha256 = "sha256-TE2yfzv2h77GLMkmoVGXmzs7J0l/N+n1eYxyrtnrnGU=";
+      sha256 = "sha256-wnBVhZ3Ky9PXs48OVvSbD1aAUSEqAwaNLg7Ntim7yFM=";
   };
 
   patches = [
@@ -20,10 +20,10 @@ mkDerivation rec {
     ./install.patch
   ];
 
-  nativeBuildInputs = [ cmake pkg-config ];
+  nativeBuildInputs = [ cmake pkg-config wrapQtAppsHook ];
 
   buildInputs = [
-    boost fftw qtbase libusb1 libzip
+    boost fftw qtbase qtwayland qtsvg libusb1 libzip
     python3
   ];
 

@@ -4,17 +4,18 @@
 
 stdenv.mkDerivation rec {
   pname = "ntirpc";
-  version = "4.1";
+  version = "5.0";
 
   src = fetchFromGitHub {
     owner = "nfs-ganesha";
     repo = "ntirpc";
     rev = "v${version}";
-    sha256 = "sha256-RTuWj795YrXVo3TIiEr3Dy/QmSL5Ch0VVc4gRlDhNTM=";
+    sha256 = "sha256-xqnfo07EHwendzibIz187vdaenHwxg078D6zJvoyewc=";
   };
 
   postPatch = ''
     substituteInPlace ntirpc/netconfig.h --replace "/etc/netconfig" "$out/etc/netconfig"
+    sed '1i#include <assert.h>' -i src/work_pool.c
   '';
 
   nativeBuildInputs = [ cmake ];

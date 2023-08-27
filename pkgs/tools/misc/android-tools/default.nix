@@ -1,4 +1,4 @@
-{ lib, stdenv, fetchurl, fetchpatch
+{ lib, stdenv, fetchurl
 , cmake, pkg-config, perl, go, python3
 , protobuf, zlib, gtest, brotli, lz4, zstd, libusb1, pcre2
 }:
@@ -9,20 +9,25 @@ in
 
 stdenv.mkDerivation rec {
   pname = "android-tools";
-  version = "33.0.3p1";
+  version = "34.0.1";
 
   src = fetchurl {
     url = "https://github.com/nmeum/android-tools/releases/download/${version}/android-tools-${version}.tar.xz";
-    hash = "sha256-viBHzyVgUWdK9a60u/7SdpiVEvgNEZHihkyRkGH5Ydg=";
+    hash = "sha256-YCNOy8oZoXp+L0akWBlg1kW3xVuHDZJKIUlMdqb1SOw=";
   };
 
   patches = [
-    (fetchpatch {
-      name = "add-macos-platform.patch";
-      url = "https://github.com/nmeum/android-tools/commit/a1ab35b31525966e0f0770047cd82accb36d025b.patch";
-      hash = "sha256-6O3ekDf0qPdzcfINFF8Ae4XOYgnQWTBhvu9SCFSHkXY=";
+    # Fix building with newer protobuf versions.
+    (fetchurl {
+      url = "https://gitlab.archlinux.org/archlinux/packaging/packages/android-tools/-/raw/295ad7d5cb1e3b4c75bd40281d827f9168bbaa57/protobuf-23.patch";
+      hash = "sha256-KznGgZdYT6e5wG3gtfJ6i93bYfp/JFygLW/ZzvXUA0Y=";
     })
   ];
+
+  # Fix linking with private abseil-cpp libraries.
+  postPatch = ''
+    sed -i '/^find_package(Protobuf REQUIRED)$/i find_package(protobuf CONFIG)' vendor/CMakeLists.txt
+  '';
 
   nativeBuildInputs = [ cmake pkg-config perl go ];
   buildInputs = [ protobuf zlib gtest brotli lz4 zstd libusb1 pcre2 ];
@@ -33,10 +38,6 @@ stdenv.mkDerivation rec {
 
   preConfigure = ''
     export GOCACHE=$TMPDIR/go-cache
-  '';
-
-  postInstall = ''
-    install -Dm755 ../vendor/avb/avbtool.py -t $out/bin
   '';
 
   meta = with lib; {
@@ -53,7 +54,8 @@ stdenv.mkDerivation rec {
       - mke2fs.android (required by fastboot)
       - simg2img, img2simg, append2simg
       - lpdump, lpmake, lpadd, lpflash, lpunpack
-      - mkbootimg, unpack_bootimg, repack_bootimg
+      - mkbootimg, unpack_bootimg, repack_bootimg, avbtool
+      - mkdtboimg
     '';
     # https://developer.android.com/studio/command-line#tools-platform
     # https://developer.android.com/studio/releases/platform-tools

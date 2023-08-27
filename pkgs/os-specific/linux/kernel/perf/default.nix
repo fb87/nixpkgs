@@ -25,6 +25,7 @@
 , libbfd_2_38
 , libopcodes
 , libopcodes_2_38
+, libtraceevent
 , openssl
 , systemtap
 , numactl
@@ -62,7 +63,11 @@ stdenv.mkDerivation {
   postPatch = ''
     # Linux scripts
     patchShebangs scripts
-
+    patchShebangs tools/perf/check-headers.sh
+  '' + lib.optionalString (lib.versionAtLeast kernel.version "6.3") ''
+    # perf-specific scripts
+    patchShebangs tools/perf/pmu-events
+  '' + ''
     cd tools/perf
 
     for x in util/build-id.c util/dso.c; do
@@ -78,7 +83,10 @@ stdenv.mkDerivation {
     patchShebangs pmu-events/jevents.py
   '';
 
-  makeFlags = [ "prefix=$(out)" "WERROR=0" ] ++ kernel.makeFlags;
+  makeFlags = [ "prefix=$(out)" "WERROR=0" "ASCIIDOC8=1" ] ++ kernel.makeFlags
+    ++ lib.optional (!withGtk) "NO_GTK2=1"
+    ++ lib.optional (!withZstd) "NO_LIBZSTD=1"
+    ++ lib.optional (!withLibcap) "NO_LIBCAP=1";
 
   hardeningDisable = [ "format" ];
 
@@ -102,10 +110,10 @@ stdenv.mkDerivation {
     elfutils
     newt
     slang
+    libtraceevent
     libunwind
     zlib
     openssl
-    systemtap.stapBuild
     numactl
     python3
     perl
@@ -113,12 +121,13 @@ stdenv.mkDerivation {
   ] ++ (if (lib.versionAtLeast kernel.version "5.19")
   then [ libbfd libopcodes ]
   else [ libbfd_2_38 libopcodes_2_38 ])
+  ++ lib.optional (lib.meta.availableOn stdenv.hostPlatform systemtap) systemtap.stapBuild
   ++ lib.optional withGtk gtk2
   ++ lib.optional withZstd zstd
   ++ lib.optional withLibcap libcap
   ++ lib.optional (lib.versionAtLeast kernel.version "6.0") python3.pkgs.setuptools;
 
-  NIX_CFLAGS_COMPILE = toString [
+  env.NIX_CFLAGS_COMPILE = toString [
     "-Wno-error=cpp"
     "-Wno-error=bool-compare"
     "-Wno-error=deprecated-declarations"
@@ -127,7 +136,7 @@ stdenv.mkDerivation {
 
   doCheck = false; # requires "sparse"
 
-  installFlags = [ "install" "install-man" "ASCIIDOC8=1" "prefix=$(out)" ];
+  installTargets = [ "install" "install-man" ];
 
   # TODO: Add completions based on perf-completion.sh
   postInstall = ''
@@ -139,7 +148,7 @@ stdenv.mkDerivation {
 
   preFixup = ''
     # Pull in 'objdump' into PATH to make annotations work.
-    # The embeded Python interpreter will search PATH to calculate the Python path configuration(Should be fixed by upstream).
+    # The embedded Python interpreter will search PATH to calculate the Python path configuration(Should be fixed by upstream).
     # Add python.interpreter to PATH for now.
     wrapProgram $out/bin/perf \
       --prefix PATH : ${lib.makeBinPath [ binutils-unwrapped python3 ]}

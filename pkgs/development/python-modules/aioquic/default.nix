@@ -1,20 +1,24 @@
 { lib
-, fetchPypi
 , buildPythonPackage
+, certifi
+, fetchPypi
 , openssl
 , pylsqpack
-, certifi
-, pytestCheckHook
 , pyopenssl
+, pytestCheckHook
+, pythonOlder
 }:
 
 buildPythonPackage rec {
   pname = "aioquic";
-  version = "0.9.20";
+  version = "0.9.21";
+  format = "setuptools";
+
+  disabled = pythonOlder "3.8";
 
   src = fetchPypi {
     inherit pname version;
-    sha256 = "sha256-7ENqqs6Ze4RrAeUgDtv34+VrkYJqFE77l0j9jd0zK74=";
+    hash = "sha256-ecfsBjGOeFYnZlyk6HI63zR7ciW30AbjMtJXWh9RbvU=";
   };
 
   propagatedBuildInputs = [
@@ -23,11 +27,19 @@ buildPythonPackage rec {
     pyopenssl
   ];
 
-  buildInputs = [ openssl ];
+  buildInputs = [
+    openssl
+  ];
 
-  checkInputs = [ pytestCheckHook ];
+  nativeCheckInputs = [
+    pytestCheckHook
+  ];
 
-  pythonImportsCheck = [ "aioquic" ];
+  pythonImportsCheck = [
+    "aioquic"
+  ];
+
+  __darwinAllowLocalNetworking = true;
 
   meta = with lib; {
     description = "Implementation of QUIC and HTTP/3";

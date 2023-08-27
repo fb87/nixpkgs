@@ -14,7 +14,7 @@
 
 buildPythonPackage rec {
   pname = "scapy";
-  version = "2.4.5";
+  version = "2.5.0";
 
   disabled = isPyPy;
 
@@ -22,7 +22,7 @@ buildPythonPackage rec {
     owner = "secdev";
     repo = "scapy";
     rev = "v${version}";
-    sha256 = "0nxci1v32h5517gl9ic6zjq8gc8drwr0n5pz04c91yl97xznnw94";
+    hash = "sha256-xJlovcxUQOQHfOU0Jgin/ayd2T5fOyeN4Jg0DbLHoeU=";
   };
 
   patches = [
@@ -48,11 +48,11 @@ buildPythonPackage rec {
     ++ lib.optional withCryptography cryptography
     ++ lib.optional withVoipSupport sox
     ++ lib.optional withPlottingSupport matplotlib
-    ++ lib.optionals withGraphicsSupport [ pyx texlive.combined.scheme-minimal graphviz imagemagick ];
+    ++ lib.optionals withGraphicsSupport [ pyx texlive.combined.scheme-basic graphviz imagemagick ];
 
   # Running the tests seems too complicated:
   doCheck = false;
-  checkInputs = [ mock can brotli ];
+  nativeCheckInputs = [ mock can brotli ];
   checkPhase = ''
     # TODO: be more specific about files
     patchShebangs .

@@ -2,19 +2,18 @@
 , buildGoModule
 , fetchFromGitHub
 , installShellFiles
-
 , openssl
 }:
 
 buildGoModule rec {
   pname = "grype";
-  version = "0.53.0";
+  version = "0.65.2";
 
   src = fetchFromGitHub {
     owner = "anchore";
     repo = pname;
-    rev = "v${version}";
-    sha256 = "sha256-um+uyY8kPkouF/9Kms0xZYhgYeZC/pE6w+JCVcKWdpI=";
+    rev = "refs/tags/v${version}";
+    hash = "sha256-ST+fJfkViQubCWVMY2BbOgE7tOpXjCX1ATLBmLmvMiY=";
     # populate values that require us to use git. By doing this in postFetch we
     # can delete .git afterwards and maintain better reproducibility of the src.
     leaveDotGit = true;
@@ -26,22 +25,29 @@ buildGoModule rec {
       find "$out" -name .git -print0 | xargs -0 rm -rf
     '';
   };
+
   proxyVendor = true;
-  vendorSha256 = "sha256-BP5Tvv5s74uxjVcEC0QPaw2tGPmkOjZmyCrPwwoz7o4=";
+
+  vendorHash = "sha256-HaqJ1Pc0A29D0HielGhP6uxkVccB8JyUrm0Q5nW8teU=";
 
   nativeBuildInputs = [
     installShellFiles
   ];
 
-  subPackages = [ "." ];
+  nativeCheckInputs = [
+    openssl
+  ];
+
+  subPackages = [ "cmd/grype" ];
+
   excludedPackages = "test/integration";
 
   ldflags = [
     "-s"
     "-w"
-    "-X github.com/anchore/grype/internal/version.version=${version}"
-    "-X github.com/anchore/grype/internal/version.gitDescription=v${version}"
-    "-X github.com/anchore/grype/internal/version.gitTreeState=clean"
+    "-X=github.com/anchore/grype/internal/version.version=${version}"
+    "-X=github.com/anchore/grype/internal/version.gitDescription=v${version}"
+    "-X=github.com/anchore/grype/internal/version.gitTreeState=clean"
   ];
 
   preBuild = ''
@@ -53,7 +59,6 @@ buildGoModule rec {
     ldflags+=" -X github.com/anchore/grype/internal/version.buildDate=$(cat SOURCE_DATE_EPOCH)"
   '';
 
-  checkInputs = [ openssl ];
   preCheck = ''
     # test all dirs (except excluded)
     unset subPackages
@@ -68,14 +73,6 @@ buildGoModule rec {
       --replace "TestCmd" "SkipCmd"
     substituteInPlace grype/pkg/provider_test.go \
       --replace "TestSyftLocationExcludes" "SkipSyftLocationExcludes"
-    substituteInPlace grype/presenter/cyclonedx/presenter_test.go \
-      --replace "TestCycloneDxPresenterImage" "SkipCycloneDxPresenterImage"
-    substituteInPlace grype/presenter/cyclonedxvex/presenter_test.go \
-      --replace "TestCycloneDxPresenterImage" "SkipCycloneDxPresenterImage"
-    substituteInPlace grype/presenter/sarif/presenter_test.go \
-      --replace "Test_imageToSarifReport" "Skip_imageToSarifReport" \
-      --replace "TestSarifPresenterImage" "SkipSarifPresenterImage"
-
     # remove tests that depend on git
     substituteInPlace test/cli/db_validations_test.go \
       --replace "TestDBValidations" "SkipDBValidations"
@@ -83,8 +80,7 @@ buildGoModule rec {
       --replace "TestRegistryAuth" "SkipRegistryAuth"
     substituteInPlace test/cli/sbom_input_test.go \
       --replace "TestSBOMInput_FromStdin" "SkipSBOMInput_FromStdin" \
-      --replace "TestSBOMInput_AsArgument" "SkipSBOMInput_AsArgument" \
-      --replace "TestAttestationInput_AsArgument" "SkipAttestationInput_AsArgument"
+      --replace "TestSBOMInput_AsArgument" "SkipSBOMInput_AsArgument"
     substituteInPlace test/cli/subprocess_test.go \
       --replace "TestSubprocessStdin" "SkipSubprocessStdin"
 
@@ -108,6 +104,6 @@ buildGoModule rec {
       container image or filesystem to find known vulnerabilities.
     '';
     license = with licenses; [ asl20 ];
-    maintainers = with maintainers; [ fab jk ];
+    maintainers = with maintainers; [ fab jk kashw2 ];
   };
 }
